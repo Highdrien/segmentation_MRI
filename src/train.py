@@ -28,10 +28,11 @@ def train(config):
         device = torch.device("cpu")
     print('device:', device)
 
-    # Model #TODO: add dropout
+    # Model
     model = UNet(input_channels=config.model.input_channels,
                  output_classes=config.model.output_channels,
-                 hidden_channels=config.model.hidden_channels)
+                 hidden_channels=config.model.hidden_channels,
+                 dropout_probability=config.model.dropout)
 
     model.to(device)
     print('number of parameters:', get_n_params(model))
