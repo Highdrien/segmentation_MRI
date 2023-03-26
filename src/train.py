@@ -8,9 +8,11 @@ import torch
 from torch.utils.data import DataLoader
 
 from src.model import UNet
+from src.metrics import compute_metrics
 from src.dataloader import create_generators
-from src.metrics import compute_metrics, get_metrics_name
+from src.loss import IoULoss, IoUClassesLoss
 from configs.utils import train_logger, train_step_logger
+
 
 torch.manual_seed(0)
 CLASS_DISTRIBUTION = [0.9621471811176255, 0.012111862189784502, 0.013016226246835367, 0.01272473044575458]
@@ -47,6 +49,15 @@ def train(config):
         else:
             criterion = torch.nn.CrossEntropyLoss()
             print('loss:', 'cross entropy')
+
+    elif 'iou' in config.model.loss.lower():
+        if 'classes' in config.model.loss.lower() or 'macro' in config.model.loss.lower():
+            criterion = IoUClassesLoss(nb_classes=config.data.number_classes, smooth=0.001)
+            print('loss:', 'iou classes')
+        else:
+            print('loss:', 'iou')
+            criterion = IoULoss()
+
     else:
         raise 'please choose crossentropy loss'
 
@@ -57,11 +68,7 @@ def train(config):
         raise 'the Adam optimizer is the only one to be implemented'
 
     # Metrics
-    acc = 'accuracy' in config.metrics
-    iou_micro = 'iou_micro' in config.metrics
-    iou_macro = 'iou_macro' in config.metrics
-    iou_weighted = 'iou_weighted' in config.metrics
-    metrics_name = get_metrics_name(acc=acc, iou_micro=iou_micro, iou_macro=iou_macro, iou_weighted=iou_weighted)
+    metrics_name = list(filter(lambda x: config.metrics[x], config.metrics))
     logging_path = train_logger(config, metrics_name)
 
     ###############################################################
@@ -88,13 +95,9 @@ def train(config):
             loss = criterion(y_pred, y_true)
             loss.backward()
 
-            y_true = torch.movedim(y_true, 1, 4)
-            y_pred = torch.movedim(y_pred, 1, 4)
-
             train_loss.append(loss.item())
 
-            train_metrics += compute_metrics(y_true, y_pred, acc=acc, iou_micro=iou_micro, iou_macro=iou_macro,
-                                             iou_weighted=iou_weighted, argmax_axis=1)
+            train_metrics += compute_metrics(config, y_true, y_pred, argmax_axis=-1)
 
             train_range.set_description("TRAIN -> epoch: %4d || loss: %4.4f" % (epoch, np.mean(train_loss)))
             train_range.refresh()
@@ -128,10 +131,7 @@ def train(config):
                 loss = criterion(y_pred, y_true)
                 val_loss.append(loss.item())
 
-                y_true = torch.movedim(y_true, 1, 4)
-                y_pred = torch.movedim(y_pred, 1, 4)
-
-                val_metrics += compute_metrics(y_true, y_pred, acc, iou_micro, iou_macro, iou_weighted, 1)
+                val_metrics += compute_metrics(config, y_true, y_pred, argmax_axis=-1)
 
         val_metrics = val_metrics / len(val_loader)
 

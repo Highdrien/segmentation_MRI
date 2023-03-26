@@ -30,9 +30,9 @@ def train_logger(config, metrics_name):
     # create train_log.csv where save the metrics
     with open(os.path.join(path, 'train_log.csv'), 'w') as f:
         first_line = 'step,' + config.model.loss + ',val ' + config.model.loss
-        for metric in metrics_name:
-            first_line += ',' + config.metrics[metric]
-            first_line += ',val ' + config.metrics[metric]
+        for metric in list(filter(lambda x: config.metrics[x], config.metrics)):
+            first_line += ',' + metric
+            first_line += ',val ' + metric
         f.write(first_line + '\n')
     f.close()
 

@@ -2,10 +2,12 @@ purpose: 'default config'
 
 # metrics
 metrics:
-    accuracy: 'accuracy'
-    iou_micro: 'iou'
-    iou_macro: 'iou classes'
-    iou_weighted: 'iou weighted'
+    accuracy: true
+    iou_micro: true
+    iou_macro: true
+    iou_weighted: true
+    crossentropy: true
+    crossentropy_weighted: true
 
 # model options
 model:
@@ -14,7 +16,7 @@ model:
     hidden_channels: 8
     learning_rate: 0.001
     dropout: 0.25                          # rate of the dropout
-    loss: 'crossentropy weighted'          # loss function
+    loss: 'iou macro loss'                 # loss function
     optimizer: 'adam'                      # optimizer
     model_summary: false                   # print the model.summary
     deep_unet: 4
@@ -32,7 +34,7 @@ data:
 train:
     batch_size: 1                          # training batch size
     virtual_batch_size: 10
-    epochs: 5                              # number of epochs
+    epochs: 2                              # number of epochs
     save_learning_curves: true             # save the learning curves
     logs_path: 'logs'                      # path to logs folder
     save_checkpoint: true                  # if you want save the model's weight: 'all', 'last' or false
