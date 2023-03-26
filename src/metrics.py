@@ -4,8 +4,13 @@ import numpy as np
 from sklearn.metrics import jaccard_score
 
 # random.seed(0)
+if torch.cuda.is_available():
+    device = torch.device("cuda")
+else:
+    device = torch.device("cpu")
+
 CLASS_DISTRIBUTION = [0.9621471811176255, 0.012111862189784502, 0.013016226246835367, 0.01272473044575458]
-WEIGH = torch.tensor(list(map(lambda x: 1 / x, CLASS_DISTRIBUTION)))
+WEIGH = torch.tensor(list(map(lambda x: 1 / x, CLASS_DISTRIBUTION))).to(device)
 
 
 def compute_metrics(config, y_true, y_pred, argmax_axis=1):
@@ -20,21 +25,14 @@ def compute_metrics(config, y_true, y_pred, argmax_axis=1):
         crossentropy.append(criterion(y_pred, y_true).item())
 
     metrics = []
-    print(f'{y_pred.shape = }')
-    print(f'{y_true.shape = }')
     y_true = torch.movedim(y_true, 1, 4)
     y_pred = torch.movedim(y_pred, 1, 4)
-    print(f'{y_pred.shape = }')
-    print(f'{y_true.shape = }')
     y_pred = torch.flatten(torch.argmax(y_pred, dim=argmax_axis)).cpu()
     y_true = torch.flatten(torch.argmax(y_true, dim=argmax_axis)).cpu()
-    print(f'{y_pred.shape = }')
-    print(f'{y_true.shape = }')
 
     if config.metrics.accuracy:
         corrects = torch.eq(y_pred, y_true).float()
         acc = corrects.sum().item() / corrects.shape[0]
-        print(acc)
         metrics.append(acc)
 
     if config.metrics.iou_micro:
