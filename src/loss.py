@@ -27,5 +27,5 @@ class IoUClassesLoss(nn.Module):
         self.smooth = smooth
 
     def forward(self, y_pred, y_true):
-        iou_classes = [iou(y_true[:, :, :, i], y_pred[:, :, :, i], self.smooth) for i in range(self.nb_classes)]
+        iou_classes = [iou(y_true[:, i, :, :], y_pred[:, i, :, :], self.smooth) for i in range(self.nb_classes)]
         return 1 - sum(iou_classes) / self.nb_classes

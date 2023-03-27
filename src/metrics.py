@@ -47,32 +47,27 @@ def compute_metrics(config, y_true, y_pred, argmax_axis=1):
     return np.array(metrics + crossentropy)
 
 
-def get_metrics_name(config):
-    metrics_name = list(filter(lambda x: config.metrics[x], config.metrics))
-    return metrics_name
-
-
 # def IoU(y_true, y_pred, smooth=0.001):
 #     # flatten label and prediction tensors
 #     inter = torch.sum(y_true * y_pred)
 #     union = torch.sum(y_true + y_pred) - inter
 #
-#     return 1 - (inter + smooth) / (union + smooth)
+#     return (inter + smooth) / (union + smooth)
 #
 #
 # def IoU_classes(y_true, y_pred, nb_classes, smooth=0.001):
-#     iou_classes = torch.tensor([IoU(y_true[:, :, :, i], y_pred[:, :, :, i], smooth) for i in range(nb_classes)])
-#
-#     return iou_classes.mean()
+#     iou_classes = [IoU(y_true[:, i, :, :], y_pred[:, i, :, :], smooth) for i in range(nb_classes)]
+#     print(iou_classes)
+#     return 1 - sum(iou_classes) / nb_classes
 #
 #
 # def create_label(shape):
 #     y = torch.zeros(shape, dtype=torch.float)
 #     for i in range(shape[1]):
-#         for j in range(shape[2]):
-#             for k in range(shape[3]):
-#                 idx = random.randint(0, shape[4] - 1)
-#                 y[0, i, j, k, idx] = 1
+#         for j in range(shape[3]):
+#             for k in range(shape[4]):
+#                 idx = random.randint(0, shape[2] - 1)
+#                 y[0, i, idx, j, k] = 1
 #     return y
 #
 #
@@ -86,11 +81,10 @@ def get_metrics_name(config):
 #     return y
 #
 #
-# shape = [1, 4, 10, 10, 6]
-# y_true = create_label(shape)
-# y_pred = create_pred(shape)
+# if __name__ == '__main__':
+#     shape = [1, 4, 256, 256, 10]
+#     y_true = create_label(shape)
+#     y_pred = create_pred(shape)
 #
-# print(compute_metrics(y_true, y_pred, acc=False, iou_micro=True, iou_macro=True, iou_weighted=False))
-#
-# print('iou', IoU(y_true, y_pred))
-# print('iou classes', IoU_classes(y_true, y_pred, 4))
+#     print('iou', 1 - IoU(y_true, y_pred))
+#     print('iou classes', IoU_classes(y_true, y_pred, 4))

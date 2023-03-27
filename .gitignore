@@ -2,3 +2,8 @@ logs
 data
 .idea
 __pycache__
+.gitignore
+y_pred.txt
+y_true.txt
+load_y.py
+

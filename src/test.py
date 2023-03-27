@@ -9,6 +9,7 @@ from src.model import UNet
 from src.dataloader import create_generators
 from src.metrics import compute_metrics, get_metrics_name
 from configs.utils import test_logger
+from src.loss import IoULoss, IoUClassesLoss
 
 torch.manual_seed(0)
 CLASS_DISTRIBUTION = [0.9621471811176255, 0.012111862189784502, 0.013016226246835367, 0.01272473044575458]
@@ -31,7 +32,8 @@ def evaluate(logging_path, config):
     # Model
     model = UNet(input_channels=config.model.input_channels,
                  output_classes=config.model.output_channels,
-                 hidden_channels=config.model.hidden_channels)
+                 hidden_channels=config.model.hidden_channels,
+                 dropout_probability=config.model.dropout)
 
     model.to(device)
 
@@ -49,24 +51,31 @@ def evaluate(logging_path, config):
 
     # Loss
     if 'crossentropy' in config.model.loss.lower():
-        crossentropy = torch.nn.CrossEntropyLoss()
+        if 'weigh' in config.model.loss.lower():
+            weigh = list(map(lambda x: 1 / x, CLASS_DISTRIBUTION))
+            weigh = torch.tensor(weigh).to(device)
+            criterion = torch.nn.CrossEntropyLoss(weight=weigh)
+            print('loss:', 'cross entropy weighted')
+        else:
+            criterion = torch.nn.CrossEntropyLoss()
+            print('loss:', 'cross entropy')
 
-        weigh = list(map(lambda x: 1 / x, CLASS_DISTRIBUTION))
-        weigh = torch.tensor(weigh).to(device)
-        crossentropy_weighted = torch.nn.CrossEntropyLoss(weight=weigh)
+    elif 'iou' in config.model.loss.lower():
+        if 'classes' in config.model.loss.lower() or 'macro' in config.model.loss.lower():
+            criterion = IoUClassesLoss(nb_classes=config.data.number_classes, smooth=0.001)
+            print('loss:', 'iou classes')
+        else:
+            print('loss:', 'iou')
+            criterion = IoULoss(smooth=0.001)
 
     else:
-        raise 'please choose crossentropy loss'
+        raise 'please choose crossentropy loss or iou loss'
 
     # Metrics
-    acc = 'accuracy' in config.metrics
-    iou_micro = 'iou_micro' in config.metrics
-    iou_macro = 'iou_macro' in config.metrics
-    iou_weighted = 'iou_weighted' in config.metrics
-    metrics_name = get_metrics_name(acc=acc, iou_micro=iou_micro, iou_macro=iou_macro, iou_weighted=iou_weighted)
+    metrics_name = list(filter(lambda x: config.metrics[x], config.metrics))
 
     # Evaluation
-    test_loss = np.zeros(2, dtype=float)
+    test_loss = []
     test_metrics = np.zeros(len(metrics_name), dtype=float)
 
     with torch.no_grad():
@@ -78,24 +87,29 @@ def evaluate(logging_path, config):
 
             y_true = torch.movedim(y_true, 4, 1)
 
-            test_loss += np.array([crossentropy(y_pred, y_true).item(),
-                                   crossentropy_weighted(y_pred, y_true).item()])
+            test_loss.append(criterion(y_pred, y_true).item())
 
-            y_true = torch.movedim(y_true, 1, 4)
-            y_pred = torch.movedim(y_pred, 1, 4)
+            # y_true = torch.movedim(y_true, 1, 4)
+            # y_pred = torch.movedim(y_pred, 1, 4)
 
-            test_metrics += compute_metrics(y_true, y_pred, acc, iou_micro, iou_macro, iou_weighted, 1)
+            test_metrics += compute_metrics(config, y_true, y_pred, argmax_axis=1)
 
-    test_loss = test_loss / len(test_loader)
+    if test_loss[-1] == 0:
+        y_save('y_true.txt', y_true)
+        y_save('y_pred.txt', y_pred)
+
+    test_loss = sum(test_loss) / len(test_loader)
     test_metrics = test_metrics / len(test_loader)
 
-    name = np.concatenate((np.array(['crossentropy', 'crossentropy weighted'], ), metrics_name), axis=0)
-    value = np.concatenate((test_loss, test_metrics), axis=0)
+    print('test loss:', test_loss)
 
-    for i in range(len(name)):
-        print(str(name[i]) + ':', value[i])
+    # name = np.concatenate((np.array(['crossentropy', 'crossentropy weighted'], ), metrics_name), axis=0)
+    # value = np.concatenate((test_loss, test_metrics), axis=0)
+    #
+    # for i in range(len(name)):
+    #     print(str(name[i]) + ':', value[i])
 
-    test_logger(logging_path, name, value)
+    test_logger(logging_path, metrics_name, test_metrics)
         
 
 def get_checkpoint_path(config, path):
@@ -125,3 +139,10 @@ def get_checkpoint_path(config, path):
         return os.path.join(path, 'model' + config.test.checkpoint + 'pth')
 
     raise 'The model weights could not be found'
+
+
+def y_save(path, y):
+    with open(path, 'w') as file:
+        file.write(str(y.shape))
+        for x in tqdm(torch.flatten(y), desc='save_y'):
+            file.write(str(x.item()) + '\n')

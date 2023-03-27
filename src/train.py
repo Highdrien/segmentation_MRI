@@ -56,10 +56,10 @@ def train(config):
             print('loss:', 'iou classes')
         else:
             print('loss:', 'iou')
-            criterion = IoULoss()
+            criterion = IoULoss(smooth=0.001)
 
     else:
-        raise 'please choose crossentropy loss'
+        raise 'please choose crossentropy loss or iou loss'
 
     # Optimizer
     if config.model.optimizer.lower() == "adam":
