@@ -71,6 +71,8 @@ def train(config):
     metrics_name = list(filter(lambda x: config.metrics[x], config.metrics))
     logging_path = train_logger(config, metrics_name)
 
+    best_epoch, best_val_loss = 0, 10e6
+
     ###############################################################
     # Start Training                                              #
     ###############################################################
@@ -133,21 +135,33 @@ def train(config):
 
                 val_metrics += compute_metrics(config, y_true, y_pred, argmax_axis=-1)
 
+        val_loss = np.mean(val_loss)
         val_metrics = val_metrics / len(val_loader)
 
         ###################################################################
         # Save Scores in logs                                             #
         ###################################################################
 
-        train_step_logger(logging_path, epoch, np.mean(train_loss), np.mean(val_loss), train_metrics, val_metrics)
+        train_step_logger(logging_path, epoch, np.mean(train_loss), val_loss, train_metrics, val_metrics)
 
-        if config.train.save_checkpoint == 'all':
+        if config.train.save_checkpoint.lower() == 'all':
             checkpoint_path = os.path.join(logging_path, 'checkpoint_path')
             checkpoint_name = 'model' + str(epoch) + 'pth'
             os.makedirs(checkpoint_path, exist_ok=True)
             torch.save(model.state_dict(), os.path.join(checkpoint_path, checkpoint_name))
 
-    if config.train.save_checkpoint == 'last':
+        elif config.train.save_checkpoint.lower() == 'best':
+            if val_loss < best_val_loss:
+                print('saving checkpoints')
+                best_epoch, best_val_loss = epoch, val_loss
+                torch.save(model.state_dict(), os.path.join(logging_path, 'model.pth'))
+
+    if config.train.save_checkpoint.lower() == 'best':
+        old_name = os.path.join(logging_path, 'model.pth')
+        new_name = os.path.join(logging_path, 'model' + str(best_epoch) + '.pth')
+        os.rename(old_name, new_name)
+
+    elif config.train.save_checkpoint == 'last':
         torch.save(model.state_dict(), os.path.join(logging_path, 'model.pth'))
 
     if config.train.save_learning_curves:
