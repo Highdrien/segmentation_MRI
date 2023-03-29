@@ -1,7 +1,19 @@
 import torch
 from tqdm import tqdm
 
-from src.metrics import IoU, IoU_classes
+
+def IoU(y_true, y_pred, smooth=0.001):
+    # flatten label and prediction tensors
+    inter = torch.sum(y_true * y_pred)
+    union = torch.sum(y_true + y_pred) - inter
+
+    return (inter + smooth) / (union + smooth)
+
+
+def IoU_classes(y_true, y_pred, nb_classes, smooth=0.001):
+    iou_classes = [IoU(y_true[:, i, :, :], y_pred[:, i, :, :], smooth) for i in range(nb_classes)]
+    print(iou_classes)
+    return 1 - sum(iou_classes) / nb_classes
 
 
 def load_y(path):

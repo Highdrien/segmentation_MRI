@@ -47,20 +47,6 @@ def compute_metrics(config, y_true, y_pred, argmax_axis=1):
     return np.array(metrics + crossentropy)
 
 
-# def IoU(y_true, y_pred, smooth=0.001):
-#     # flatten label and prediction tensors
-#     inter = torch.sum(y_true * y_pred)
-#     union = torch.sum(y_true + y_pred) - inter
-#
-#     return (inter + smooth) / (union + smooth)
-#
-#
-# def IoU_classes(y_true, y_pred, nb_classes, smooth=0.001):
-#     iou_classes = [IoU(y_true[:, i, :, :], y_pred[:, i, :, :], smooth) for i in range(nb_classes)]
-#     print(iou_classes)
-#     return 1 - sum(iou_classes) / nb_classes
-#
-#
 # def create_label(shape):
 #     y = torch.zeros(shape, dtype=torch.float)
 #     for i in range(shape[1]):
