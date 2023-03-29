@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 
 from src.model import UNet
 from src.dataloader import create_generators
-from src.metrics import compute_metrics, get_metrics_name
+from src.metrics import compute_metrics
 from configs.utils import test_logger
 from src.loss import IoULoss, IoUClassesLoss
 
