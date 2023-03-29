@@ -2,7 +2,6 @@ import os
 import logging
 import numpy as np
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 import torch
 from torch.utils.data import DataLoader
@@ -12,6 +11,7 @@ from src.metrics import compute_metrics
 from src.dataloader import create_generators
 from src.loss import IoULoss, IoUClassesLoss
 from configs.utils import train_logger, train_step_logger
+from utils.save_learning_curves import save_learning_curves
 
 
 torch.manual_seed(0)
@@ -176,30 +176,3 @@ def get_n_params(model):
             nn = nn * s
         pp += nn
     return pp
-
-
-def save_learning_curves(path):
-    save_path = os.path.join(path, 'learning_curves')
-    with open(os.path.join(path, 'train_log.csv'), 'r') as f:
-        name = f.readline()[:-1].split(',')
-        result = []
-        for line in f:
-            result.append(line[:-1].split(','))
-
-        result = np.array(result, dtype=float)
-    f.close()
-
-    os.makedirs(save_path, exist_ok=True)
-    for i in range(1, len(name), 2):
-        epoch = result[:, 0]
-        train_metric = result[:, i]
-        val_metric = result[:, i + 1]
-        plt.title(name[i])
-        plt.plot(epoch, train_metric)
-        plt.plot(epoch, val_metric)
-        plt.xlabel('epoch')
-        plt.ylabel(name[i])
-        plt.legend(['train', 'val'])
-        plt.grid()
-        plt.savefig(os.path.join(save_path, name[i] + '.png'))
-        plt.close()
