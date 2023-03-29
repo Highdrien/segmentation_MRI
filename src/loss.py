@@ -3,6 +3,9 @@ from torch import nn
 
 
 def iou(y_true, y_pred, smooth=0.001):
+    """
+    calculates the IoU (Intersection over union or jacquard score) between y_true and y_pred
+    """
     # flatten label and prediction tensors
     inter = torch.sum(y_true * y_pred)
     union = torch.sum(y_true + y_pred) - inter
@@ -21,6 +24,9 @@ class IoULoss(nn.Module):
 
 
 class IoUClassesLoss(nn.Module):
+    """
+    IoU classes is the average of the IoU of each class
+    """
     def __init__(self, nb_classes, smooth=0.001):
         super(IoUClassesLoss, self).__init__()
         self.nb_classes = nb_classes

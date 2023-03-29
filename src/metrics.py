@@ -14,7 +14,9 @@ WEIGH = torch.tensor(list(map(lambda x: 1 / x, CLASS_DISTRIBUTION))).to(device)
 
 
 def compute_metrics(config, y_true, y_pred, argmax_axis=1):
-
+    """
+    calculates all the required metrics
+    """
     crossentropy = []
     if config.metrics.crossentropy:
         criterion = torch.nn.CrossEntropyLoss()
@@ -45,32 +47,3 @@ def compute_metrics(config, y_true, y_pred, argmax_axis=1):
         metrics.append(jaccard_score(y_true, y_pred, average='weighted'))
 
     return np.array(metrics + crossentropy)
-
-
-# def create_label(shape):
-#     y = torch.zeros(shape, dtype=torch.float)
-#     for i in range(shape[1]):
-#         for j in range(shape[3]):
-#             for k in range(shape[4]):
-#                 idx = random.randint(0, shape[2] - 1)
-#                 y[0, i, idx, j, k] = 1
-#     return y
-#
-#
-# def create_pred(shape):
-#     y = torch.zeros(shape, dtype=torch.float)
-#     for i in range(shape[1]):
-#         for j in range(shape[2]):
-#             for k in range(shape[3]):
-#                 row = torch.tensor([random.random() for _ in range(shape[4])])
-#                 y[0, i, j, k, :] = row / torch.sum(row)
-#     return y
-#
-#
-# if __name__ == '__main__':
-#     shape = [1, 4, 256, 256, 10]
-#     y_true = create_label(shape)
-#     y_pred = create_pred(shape)
-#
-#     print('iou', 1 - IoU(y_true, y_pred))
-#     print('iou classes', IoU_classes(y_true, y_pred, 4))

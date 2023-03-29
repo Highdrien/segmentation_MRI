@@ -16,6 +16,12 @@ CLASS_DISTRIBUTION = [0.9621471811176255, 0.012111862189784502, 0.01301622624683
 
 
 def evaluate(logging_path, config):
+    """
+    makes a test of an already trained model and creates a test_log.csv file in the experiment_path containing the
+    metrics values at the end of the test
+    :param logging_path: path of the experiment folder, containing the config, and the model weights
+    :param config: configuration of the model
+    """
     
     # Construct Data loader
 
@@ -89,25 +95,12 @@ def evaluate(logging_path, config):
 
             test_loss.append(criterion(y_pred, y_true).item())
 
-            # y_true = torch.movedim(y_true, 1, 4)
-            # y_pred = torch.movedim(y_pred, 1, 4)
-
             test_metrics += compute_metrics(config, y_true, y_pred, argmax_axis=1)
-
-    if test_loss[-1] == 0:
-        y_save('y_true.txt', y_true)
-        y_save('y_pred.txt', y_pred)
 
     test_loss = sum(test_loss) / len(test_loader)
     test_metrics = test_metrics / len(test_loader)
 
     print('test loss:', test_loss)
-
-    # name = np.concatenate((np.array(['crossentropy', 'crossentropy weighted'], ), metrics_name), axis=0)
-    # value = np.concatenate((test_loss, test_metrics), axis=0)
-    #
-    # for i in range(len(name)):
-    #     print(str(name[i]) + ':', value[i])
 
     test_logger(logging_path, metrics_name, test_metrics)
         
@@ -139,10 +132,3 @@ def get_checkpoint_path(config, path):
         return os.path.join(path, 'model' + config.test.checkpoint + 'pth')
 
     raise 'The model weights could not be found'
-
-
-def y_save(path, y):
-    with open(path, 'w') as file:
-        file.write(str(y.shape))
-        for x in tqdm(torch.flatten(y), desc='save_y'):
-            file.write(str(x.item()) + '\n')

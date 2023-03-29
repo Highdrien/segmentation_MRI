@@ -19,7 +19,7 @@ def number_folder(path, name):
 def train_logger(config, metrics_name):
     """
     creates a logs folder where we can find the config in confing.yaml and
-    the values of the loss and metrics according to the epochs in train_log.csv
+    create train_log.csv which will contain the loss and metrics values
     """
     path = config.train.logs_path
     folder_name = number_folder(path, 'experiment_')
@@ -71,6 +71,9 @@ def config_to_yaml(config, space=''):
 
 
 def train_step_logger(path, epoch, train_loss, val_loss, train_metrics, val_metrics):
+    """
+    writes loss and metrics values in the train_log.csv
+    """
     with open(os.path.join(path, 'train_log.csv'), 'a') as file:
         line = str(epoch) + ',' + str(train_loss) + ',' + str(val_loss)
         for i in range(len(train_metrics)):

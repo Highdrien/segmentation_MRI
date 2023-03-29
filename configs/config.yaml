@@ -11,41 +11,39 @@ metrics:
 
 # model options
 model:
-    input_channels: 1
-    output_channels: 4
-    hidden_channels: 8
-    learning_rate: 0.001
-    dropout: 0.25                          # rate of the dropout
-    loss: 'iou macro loss'                 # loss function
-    optimizer: 'adam'                      # optimizer
-    model_summary: false                   # print the model.summary
-    deep_unet: 4
+    hidden_channels: 16                 # hidden channels
+    learning_rate: 0.0001               # learning rate
+    dropout: 0.25                       # rate of the dropout
+    loss: 'iou macro loss'              # loss function
+    optimizer: 'adam'                   # optimizer
+    model_summary: false                # print the model.summary
+    depth_unet: 4                       # depth of the U-net model
 
 # data options
 data:
-    data_path: 'data'                      # path to the data
-    train_split: 0.1
-    val_split: 0.1
-    shuffle: true
-    number_of_channels: 1
-    number_classes: 4
+    data_path: 'data'                   # path to the data
+    train_split: 0.8                    # rate of the training data
+    val_split: 0.1                      # rate of the validation data
+    shuffle: true                       # if the data is shuffled
+    number_of_channels: 1               # number of channels = 1 because MRI are black and white images
+    number_classes: 4                   # number of classes = 4
 
 # train options
 train:
-    batch_size: 1                          # training batch size
-    virtual_batch_size: 10
-    epochs: 2                              # number of epochs
-    save_learning_curves: true             # save the learning curves
-    logs_path: 'logs'                      # path to logs folder
-    save_checkpoint: true                  # if you want save the model's weight: 'all', 'last' or false
+    batch_size: 1                       # training batch size
+    virtual_batch_size: 10              # size of virtual batch
+    epochs: 50                          # number of epochs
+    save_learning_curves: true          # save the learning curves
+    logs_path: 'logs'                   # path to logs folder
+    save_checkpoint: best               # if you want save the model's weight: 'all', 'last', 'best' or false
 
 # validation options
 val:
-    batch_size: 1                          # validation batch size
+    batch_size: 1                       # validation batch size
 
 # test options
 test:
-    batch_size: 1                          # test batch size
-    checkpoint: null
+    batch_size: 1                       # test batch size
+    checkpoint: best                    # how the model was saved (see train.save_checkpoint)
 
 

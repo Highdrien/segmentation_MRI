@@ -18,25 +18,33 @@ class DataGenerator(Dataset):
         self.indexes = np.arange(len(self.list_IDs))
         self.on_epoch_end()
         self.data_path = config.data.data_path
-        self.deep_unet = config.model.deep_unet
+        self.deep_unet = config.model.depth_unet
         self.number_classes = config.data.number_classes
 
     def __len__(self):
-        """Denotes the number of batches per epoch"""
+        """
+        Denotes the number of batches per epoch
+        """
         return len(self.list_IDs)
 
     def __getitem__(self, index):
-        """Generate one batch of data"""
+        """
+        Generate one batch of data
+        """
         X, y = self.__data_generation(self.list_IDs[self.indexes[index]])
         return X, y
 
     def on_epoch_end(self):
-        """Updates indexes after each epoch"""
+        """
+        Updates indexes after each epoch
+        """
         if self.shuffle:
             np.random.shuffle(self.indexes)
 
     def __data_generation(self, list_IDs_temp):
-        """Generates data containing batch_size samples"""
+        """
+        Generates data containing batch_size samples
+        """
         path = list_IDs_temp[0]
         path_gt = list_IDs_temp[1]
         image_size = np.shape(load_nii(path)[0])
@@ -61,6 +69,9 @@ class DataGenerator(Dataset):
 
 
 def get_data(data_path):
+    """
+    recovers all MRI paths
+    """
     image_paths = []
     for patient in os.listdir(data_path):
         if patient[-1] != 'x' and patient[-1] != 'y':
@@ -82,7 +93,9 @@ def get_data(data_path):
 
 
 def data_split(config, paths_list):
-    """Splits the paths list into three for train, val and test"""
+    """
+    Splits the paths list into three for train, val and test
+    """
     n = len(paths_list)
     split_1 = int(n * config.data.train_split)
     split_2 = split_1 + int(n * config.data.val_split)

@@ -19,6 +19,9 @@ CLASS_DISTRIBUTION = [0.9621471811176255, 0.012111862189784502, 0.01301622624683
 
 
 def train(config):
+    """
+    makes a training according to the chosen configuration
+    """
     dataset_train, dataset_val, _ = create_generators(config)
     train_loader = DataLoader(dataset_train, batch_size=config.train.batch_size)
     val_loader = DataLoader(dataset_val, batch_size=config.val.batch_size)
@@ -31,8 +34,8 @@ def train(config):
     print('device:', device)
 
     # Model
-    model = UNet(input_channels=config.model.input_channels,
-                 output_classes=config.model.output_channels,
+    model = UNet(input_channels=config.data.number_of_channels,
+                 output_classes=config.data.number_classes,
                  hidden_channels=config.model.hidden_channels,
                  dropout_probability=config.model.dropout)
 
@@ -169,6 +172,9 @@ def train(config):
 
 
 def get_n_params(model):
+    """
+    counts the number of parameters in the model
+    """
     pp = 0
     for p in list(model.parameters()):
         nn = 1
