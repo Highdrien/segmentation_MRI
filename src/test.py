@@ -36,8 +36,8 @@ def evaluate(logging_path, config):
         device = torch.device("cpu")
 
     # Model
-    model = UNet(input_channels=config.model.input_channels,
-                 output_classes=config.model.output_channels,
+    model = UNet(input_channels=config.data.number_of_channels,
+                 output_classes=config.data.number_classes,
                  hidden_channels=config.model.hidden_channels,
                  dropout_probability=config.model.dropout)
 

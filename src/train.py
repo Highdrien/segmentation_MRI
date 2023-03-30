@@ -164,8 +164,8 @@ def train(config):
         new_name = os.path.join(logging_path, 'model' + str(best_epoch) + '.pth')
         os.rename(old_name, new_name)
 
-    elif config.train.save_checkpoint == 'last':
-        torch.save(model.state_dict(), os.path.join(logging_path, 'model.pth'))
+    elif config.train.save_checkpoint.lower() == 'last':
+        torch.save(model.state_dict(), os.path.join(logging_path, 'model' + str(config.train.epochs + 1) + '.pth'))
 
     if config.train.save_learning_curves:
         save_learning_curves(logging_path)

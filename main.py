@@ -12,7 +12,7 @@ def load_config(path='configs/config.yaml'):
     return edict(yaml.safe_load(stream))
 
 
-def __train(config_path='configs/config.yaml'):
+def __train(config_path):
     config = load_config(path=config_path)
     train(config)
 
